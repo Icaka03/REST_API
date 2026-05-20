@@ -1,56 +1,32 @@
 import { Request, Response } from "express";
+import prisma from "../lib/prisma";
 
-const products = [
-  { id: 1, name: "TV", price: 44.99 },
-  { id: 2, name: "PC", price: 200.99 },
-];
+export const getProducts = async (req: Request, res: Response) => {
+  const products = await prisma.product.findMany();
 
-export const getProducts = (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     data: products,
   });
 };
 
-export const getProductsId = (req: Request, res: Response) => {
-  const { id } = req.params;
-  const product = products.find((p) => p.id === Number(id));
-
-  if (!product) {
-    res.status(400).json({
-      success: false,
-      message: "wrong id, not existing product",
-    });
-    return;
-  }
-
-  res.status(200).json({
-    success: true,
-    data: product,
-  });
-};
-
-export const createProduct = (req: Request, res: Response) => {
+export const createProduct = async (req: Request, res: Response) => {
   const { name, price } = req.body;
 
   if (!name || !price) {
     res.status(400).json({
       success: false,
-      message: " Name and price are required",
+      message: "Name and price are required",
     });
     return;
   }
 
-  const newProduct = {
-    id: products.length + 1,
-    name,
-    price,
-  };
+  const product = await prisma.product.create({
+    data: { name, price },
+  });
 
-  products.push(newProduct);
-
-  res.status(200).json({
+  res.status(201).json({
     success: true,
-    data: newProduct,
+    data: product,
   });
 };

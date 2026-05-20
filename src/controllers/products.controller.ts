@@ -12,6 +12,24 @@ export const getProducts = (req: Request, res: Response) => {
   });
 };
 
+export const getProductsId = (req: Request, res: Response) => {
+  const { id } = req.params;
+  const product = products.find((p) => p.id === Number(id));
+
+  if (!product) {
+    res.status(400).json({
+      success: false,
+      message: "wrong id, not existing product",
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    data: product,
+  });
+};
+
 export const createProduct = (req: Request, res: Response) => {
   const { name, price } = req.body;
 

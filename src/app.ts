@@ -4,7 +4,7 @@ import helmet from "helmet";
 
 // import routes
 import userRoutes from "./routes/user.routes";
-
+import productsRoutes from "./routes/products.routes";
 const app = express();
 
 // Middleware
@@ -14,5 +14,5 @@ app.use(helmet()); // sets secure headers
 
 // Routes
 app.use("/api/users", userRoutes);
-
+app.use("/api/products", productsRoutes);
 export default app;

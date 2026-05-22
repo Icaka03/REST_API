@@ -54,3 +54,32 @@ export const createUser = async (req: Request, res: Response) => {
     },
   });
 };
+
+export const loginUser = async (req: Request, res: Response) => {
+  const { password, email } = req.body;
+
+  const correctUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!correctUser) {
+    res.status(400).json({
+      success: false,
+      message: "no user found",
+    });
+    return;
+  }
+
+  const samePassword = await bcrypt.compare(password, correctUser.password);
+
+  if (samePassword) {
+    res.status(201).json({
+      success: true,
+      data: {
+        email: correctUser.email,
+        id: correctUser.id,
+        createdAt: correctUser.createdAt,
+      },
+    });
+  }
+};

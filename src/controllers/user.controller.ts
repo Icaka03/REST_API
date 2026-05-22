@@ -1,32 +1,56 @@
 import { Request, Response } from "express";
+import prisma from "../lib/prisma";
+import bcrypt from "bcryptjs";
+export const getUsers = async (req: Request, res: Response) => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+    },
+  });
 
-// hardcoded data for now
-const users = [
-  { id: 1, name: "John Doe", email: "john@example.com" },
-  { id: 2, name: "Jane Doe", email: "jane@example.com" },
-];
-
-export const getUsers = (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     data: users,
   });
 };
 
-export const getUserById = (req: Request, res: Response) => {
-  const { id } = req.params;
-  const user = users.find((u) => u.id === Number(id));
+export const createUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-  if (!user) {
-    res.status(404).json({
+  if (!email || !password) {
+    res.status(400).json({
       success: false,
-      message: "User not found",
+      message: "Missing email or password",
     });
     return;
   }
 
-  res.status(200).json({
-    success: true,
-    data: user,
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    res.status(400).json({
+      success: false,
+      message: "user allready exist",
+    });
+    return;
+  }
+
+  const hashPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: { email, password: hashPassword },
+  });
+
+  res.status(201).json({
+    succes: true,
+    data: {
+      id: user.id,
+      email: user.email,
+      createdAt: user.createdAt,
+    },
   });
 };

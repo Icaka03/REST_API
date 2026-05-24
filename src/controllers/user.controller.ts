@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 export const getUsers = async (req: Request, res: Response) => {
   const users = await prisma.user.findMany({
     select: {
@@ -72,9 +73,19 @@ export const loginUser = async (req: Request, res: Response) => {
 
   const samePassword = await bcrypt.compare(password, correctUser.password);
 
+  const token = jwt.sign(
+    // payload — what you store inside the token
+    { id: correctUser.id, email: correctUser.email },
+    // secret — used to sign and verify
+    process.env.JWT_SECRET as string,
+    // options
+    { expiresIn: "15m" },
+  );
+
   if (samePassword) {
     res.status(201).json({
       success: true,
+      token,
       data: {
         email: correctUser.email,
         id: correctUser.id,

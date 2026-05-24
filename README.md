@@ -1,6 +1,6 @@
 # REST API with Auth
 
-A RESTful API built with Node.js, Express, TypeScript, PostgreSQL and Prisma. Features user authentication with JWT and product management.
+A RESTful API built with Node.js, Express, TypeScript, PostgreSQL and Prisma. Features user authentication with JWT and full product CRUD.
 
 ## Tech Stack
 
@@ -103,10 +103,12 @@ Returns a JWT token — use it on protected routes.
 
 ### Products
 
-| Method | Endpoint        | Description      | Auth Required |
-| ------ | --------------- | ---------------- | ------------- |
-| GET    | `/api/products` | Get all products | No            |
-| POST   | `/api/products` | Create a product | Yes           |
+| Method | Endpoint            | Description      | Auth Required |
+| ------ | ------------------- | ---------------- | ------------- |
+| GET    | `/api/products`     | Get all products | No            |
+| POST   | `/api/products`     | Create a product | Yes           |
+| PUT    | `/api/products/:id` | Update a product | Yes           |
+| DELETE | `/api/products/:id` | Delete a product | Yes           |
 
 #### Create Product (Protected)
 
@@ -119,6 +121,26 @@ Content-Type: application/json
   "name": "Laptop",
   "price": 999
 }
+```
+
+#### Update Product (Protected)
+
+```
+PUT /api/products/1
+Authorization: Bearer <your-token>
+Content-Type: application/json
+
+{
+  "name": "Updated Laptop",
+  "price": 1200
+}
+```
+
+#### Delete Product (Protected)
+
+```
+DELETE /api/products/1
+Authorization: Bearer <your-token>
 ```
 
 ---
@@ -141,3 +163,15 @@ Authorization: Bearer <your-token>
 ```
 
 In Postman: Auth tab → Bearer Token → paste token.
+
+---
+
+## Deployment
+
+This API is deployed on Railway. The live base URL is:
+
+```
+https://your-app.railway.app
+```
+
+> Note: replace the base URL above with your Railway URL after deploying.

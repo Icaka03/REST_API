@@ -23,7 +23,7 @@ model User {
   providerId String? 
 
   isVerified            Boolean   @default(false)
-  verificationCode      String?
+  verificationCode      String? @unique
   verificationExpiresAt DateTime?
 
   createdAt DateTime @default(now())

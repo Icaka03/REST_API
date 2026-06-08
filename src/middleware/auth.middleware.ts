@@ -1,25 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-  };
-}
-
 export const verifyToken = (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({
-      success: false,
-      message: "No token provided",
-    });
+    res.status(401).json({ success: false, message: "No token provided" });
     return;
   }
 
@@ -32,12 +22,10 @@ export const verifyToken = (
     };
 
     req.user = decoded;
-
     next();
-  } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: "Invalid or expired token",
-    });
+  } catch {
+    res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token" });
   }
 };

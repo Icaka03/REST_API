@@ -101,6 +101,14 @@ export const loginUser = async (req: Request, res: Response) => {
     });
     return;
   }
+  if (!correctUser.password) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "This account uses social login. Please sign in with Google or GitHub.",
+    });
+  }
+
   const samePassword = await bcrypt.compare(password, correctUser.password);
 
   const token = jwt.sign(

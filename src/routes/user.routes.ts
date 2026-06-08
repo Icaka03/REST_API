@@ -6,6 +6,4 @@ const router = Router();
 // GET /api/users
 router.get("/", getUsers);
 
-router.post("/", createUser);
-
 export default router;

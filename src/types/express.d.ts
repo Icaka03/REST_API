@@ -1,5 +1,3 @@
-import { User } from "@prisma/client";
-
 declare global {
   namespace Express {
     interface User {
@@ -8,3 +6,5 @@ declare global {
     }
   }
 }
+
+export {};

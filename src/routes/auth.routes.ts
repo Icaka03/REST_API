@@ -4,10 +4,10 @@ import {
   loginUser,
   verifyEmail,
 } from "../controllers/user.controller";
-
+import { authLimiter } from "../middleware/rateLimiter.middleware";
 const router = Router();
 
-router.post("/register", createUser);
-router.post("/login", loginUser);
-router.get("/verify-email", verifyEmail);
+router.post("/register", authLimiter, createUser);
+router.post("/login", authLimiter, loginUser);
+router.get("/verify-email", authLimiter, verifyEmail);
 export default router;

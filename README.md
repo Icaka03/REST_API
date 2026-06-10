@@ -1,15 +1,36 @@
-# REST API with Auth
+# REST API with Authentication
 
-A RESTful API built with Node.js, Express, TypeScript, PostgreSQL and Prisma. Features user authentication with JWT and full product CRUD.
+A RESTful API built with Node.js, Express, TypeScript, PostgreSQL, and Prisma. Features secure authentication with JWT, email verification, OAuth login, rate limiting, and full product CRUD operations.
+
+## Features
+
+- User registration and login
+- JWT authentication
+- Password hashing with bcryptjs
+- Email verification using Resend
+- OAuth authentication with Google and GitHub
+- Rate limiting for authentication endpoints
+- PostgreSQL database with Prisma ORM
+- Product CRUD operations
+- TypeScript support
+- Dockerized PostgreSQL
+
+---
 
 ## Tech Stack
 
 - **Runtime:** Node.js
 - **Framework:** Express
 - **Language:** TypeScript
-- **Database:** PostgreSQL (Docker)
+- **Database:** PostgreSQL
 - **ORM:** Prisma
-- **Auth:** JWT + bcryptjs
+- **Authentication:** JWT + bcryptjs
+- **Email Service:** Resend
+- **OAuth Providers:** Google, GitHub
+- **Rate Limiting:** Express Rate Limit
+- **Deployment:** AWS EC2
+
+---
 
 ## Getting Started
 
@@ -17,50 +38,120 @@ A RESTful API built with Node.js, Express, TypeScript, PostgreSQL and Prisma. Fe
 
 - Node.js
 - Docker Desktop
+- Google OAuth Credentials
+- GitHub OAuth Credentials
+- Resend API Key
 
 ### Installation
 
-1. Clone the repo
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/yourusername/rest-api.git
 cd rest-api
 ```
 
-2. Install dependencies
+#### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-3. Create a `.env` file in the root:
+#### 3. Create a `.env` File
 
 ```env
 DATABASE_URL="postgresql://admin:password@localhost:5432/mydb"
+
 JWT_SECRET="your-jwt-secret"
+
+RESEND_API_KEY="your-resend-api-key"
+EMAIL_FROM="noreply@yourdomain.com"
+
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+
 PORT=3000
 NODE_ENV=development
 ```
 
-4. Start PostgreSQL with Docker
+#### 4. Start PostgreSQL with Docker
 
 ```bash
-docker run --name postgres -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=mydb -p 5432:5432 -d postgres
+docker run --name postgres \
+-e POSTGRES_USER=admin \
+-e POSTGRES_PASSWORD=password \
+-e POSTGRES_DB=mydb \
+-p 5432:5432 \
+-d postgres
 ```
 
-5. Run Prisma migrations
+#### 5. Run Prisma Migrations
 
 ```bash
 npx prisma migrate dev
 ```
 
-6. Start the server
+#### 6. Start the Server
 
 ```bash
 npm run dev
 ```
 
-Server runs at `http://localhost:3000`
+Server runs at:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Authentication Flow
+
+### Email & Password Authentication
+
+```text
+Register
+   ↓
+Verification Email (Resend)
+   ↓
+Verify Email
+   ↓
+Login
+   ↓
+JWT Token
+   ↓
+Protected Routes
+```
+
+### OAuth Authentication
+
+```text
+Google / GitHub OAuth
+          ↓
+      JWT Token
+          ↓
+   Protected Routes
+```
+
+---
+
+## Rate Limiting
+
+To protect against brute-force attacks and abuse, rate limiting is applied to authentication endpoints:
+
+- Registration requests are limited
+- Login requests are limited
+
+If the limit is exceeded:
+
+```json
+{
+  "message": "Too many requests, please try again later."
+}
+```
 
 ---
 
@@ -68,14 +159,17 @@ Server runs at `http://localhost:3000`
 
 ### Auth
 
-| Method | Endpoint             | Description                 | Auth Required |
-| ------ | -------------------- | --------------------------- | ------------- |
-| POST   | `/api/auth/register` | Register a new user         | No            |
-| POST   | `/api/auth/login`    | Login and receive JWT token | No            |
+| Method | Endpoint                        | Description           | Auth Required |
+| ------ | ------------------------------- | --------------------- | ------------- |
+| POST   | `/api/auth/register`            | Register a new user   | No            |
+| POST   | `/api/auth/login`               | Login and receive JWT | No            |
+| GET    | `/api/auth/verify-email/:token` | Verify email address  | No            |
+| GET    | `/api/auth/google`              | Google OAuth login    | No            |
+| GET    | `/api/auth/github`              | GitHub OAuth login    | No            |
 
 #### Register
 
-```
+```http
 POST /api/auth/register
 Content-Type: application/json
 
@@ -85,9 +179,17 @@ Content-Type: application/json
 }
 ```
 
+Response:
+
+```json
+{
+  "message": "Registration successful. Please verify your email."
+}
+```
+
 #### Login
 
-```
+```http
 POST /api/auth/login
 Content-Type: application/json
 
@@ -97,7 +199,13 @@ Content-Type: application/json
 }
 ```
 
-Returns a JWT token — use it on protected routes.
+Response:
+
+```json
+{
+  "token": "your-jwt-token"
+}
+```
 
 ---
 
@@ -110,9 +218,9 @@ Returns a JWT token — use it on protected routes.
 | PUT    | `/api/products/:id` | Update a product | Yes           |
 | DELETE | `/api/products/:id` | Delete a product | Yes           |
 
-#### Create Product (Protected)
+#### Create Product
 
-```
+```http
 POST /api/products
 Authorization: Bearer <your-token>
 Content-Type: application/json
@@ -123,9 +231,9 @@ Content-Type: application/json
 }
 ```
 
-#### Update Product (Protected)
+#### Update Product
 
-```
+```http
 PUT /api/products/1
 Authorization: Bearer <your-token>
 Content-Type: application/json
@@ -136,9 +244,9 @@ Content-Type: application/json
 }
 ```
 
-#### Delete Product (Protected)
+#### Delete Product
 
-```
+```http
 DELETE /api/products/1
 Authorization: Bearer <your-token>
 ```
@@ -155,23 +263,64 @@ Authorization: Bearer <your-token>
 
 ## Using Protected Routes
 
-1. Login via `POST /api/auth/login` and copy the token from the response
-2. On protected requests add this header:
+1. Login and obtain a JWT token.
+2. Include the token in the request header:
 
-```
+```http
 Authorization: Bearer <your-token>
 ```
 
-In Postman: Auth tab → Bearer Token → paste token.
+In Postman:
+
+```text
+Authorization → Bearer Token → Paste JWT
+```
+
+---
+
+## Database
+
+This project uses:
+
+- PostgreSQL
+- Prisma ORM
+
+Useful Prisma commands:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+npx prisma studio
+```
+
+---
+
+## Security Features
+
+- JWT Authentication
+- Password Hashing (bcryptjs)
+- Email Verification with Resend
+- Google OAuth
+- GitHub OAuth
+- Authentication Rate Limiting
+- Environment Variable Protection
+- Prisma ORM SQL Injection Protection
 
 ---
 
 ## Deployment
 
-This API is deployed on Railway. The live base URL is:
+This API is deployed on an AWS EC2 instance.
 
-```
-https://your-app.railway.app
-```
+Production deployment includes:
 
-> Note: replace the base URL above with your Railway URL after deploying.
+- Node.js application running on EC2
+- PostgreSQL database
+- Email verification with Resend
+- Google & GitHub OAuth authentication
+- JWT-based authorization
+- Environment variable configuration
+
+> Note: The EC2 instance may be stopped when not in use to reduce cloud infrastructure costs.
+
+---

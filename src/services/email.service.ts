@@ -39,22 +39,29 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 
               <!-- CTA Button -->
               <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding:8px 0 32px;">
-                    <a href="${verificationUrl}"
-                       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:8px;letter-spacing:0.3px;">
-                      Verify Email Address
-                    </a>
-                  </td>
-                </tr>
-              </table>
+  <tr>
+    <td align="center" style="padding:8px 0 32px;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" bgcolor="#6366f1" style="border-radius:8px;">
+            <a href="${verificationUrl}"
+               target="_blank"
+               style="display:inline-block;background-color:#6366f1;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:8px;letter-spacing:0.3px;mso-padding-alt:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+              Verify Email Address
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
               <!-- Expiry notice -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef9c3;border-radius:8px;margin-bottom:32px;">
                 <tr>
                   <td style="padding:12px 16px;">
                     <p style="margin:0;color:#854d0e;font-size:13px;">
-                      ⏳ This link expires in <strong>24 hours</strong>. If it expires, you'll need to request a new one.
+                     This link expires in <strong>24 hours</strong>. If it expires, you'll need to request a new one.
                     </p>
                   </td>
                 </tr>
@@ -65,7 +72,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
                 <tr>
                   <td>
                     <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">
-                      🔗 If the button doesn't work, open this page in your browser:
+                       If the button doesn't work, open this page in your browser:
                     </p>
                     <a href="${verificationUrl}"
                        style="color:#6366f1;font-size:12px;word-break:break-all;text-decoration:none;">

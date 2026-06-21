@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-
+import { errorHandler } from "./middleware/error.middleware";
 // import routes
 import userRoutes from "./routes/user.routes";
 import productsRoutes from "./routes/products.routes";
@@ -20,4 +20,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/auth", oauthRoutes);
+
+app.use(errorHandler);
 export default app;

@@ -1,10 +1,14 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/email.service";
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -19,15 +23,15 @@ export const getUsers = async (req: Request, res: Response) => {
       data: users,
     });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { email, password } = req.body;
 
@@ -79,15 +83,15 @@ export const createUser = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { password, email } = req.body;
 
@@ -141,15 +145,15 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response) => {
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { token } = req.query;
 
@@ -184,10 +188,6 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
     res.json({ message: "Email verified successfully" });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };

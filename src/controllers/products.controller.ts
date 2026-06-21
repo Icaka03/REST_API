@@ -1,7 +1,11 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 
-export const getProducts = async (req: Request, res: Response) => {
+export const getProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const products = await prisma.product.findMany();
 
@@ -10,15 +14,15 @@ export const getProducts = async (req: Request, res: Response) => {
       data: products,
     });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { name, price } = req.body;
 
@@ -39,15 +43,15 @@ export const createProduct = async (req: Request, res: Response) => {
       data: product,
     });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const updateProduct = async (req: Request, res: Response) => {
+export const updateProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { id } = req.params;
     const { name, price } = req.body;
@@ -84,15 +88,15 @@ export const updateProduct = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
-export const deleteProduct = async (req: Request, res: Response) => {
+export const deleteProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { id } = req.params;
 
@@ -118,10 +122,6 @@ export const deleteProduct = async (req: Request, res: Response) => {
       data: product,
     });
   } catch (error) {
-    console.error("createUser error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };

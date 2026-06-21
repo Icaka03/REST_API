@@ -33,9 +33,9 @@ export const createUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !name) {
       res.status(400).json({
         success: false,
         message: "Missing email or password",
@@ -63,6 +63,7 @@ export const createUser = async (
       data: {
         email,
         password: hashPassword,
+        name,
         verificationCode,
         verificationExpiresAt,
       },

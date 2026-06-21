@@ -19,6 +19,7 @@ passport.use(
         if (!user) {
           user = await prisma.user.create({
             data: {
+              name: profile.displayName || email,
               email,
               provider: "google",
               providerId: profile.id,
@@ -58,6 +59,7 @@ passport.use(
           user = await prisma.user.create({
             data: {
               email,
+              name: profile.displayName || profile.username || email,
               provider: "github",
               providerId: profile.id,
               isVerified: true,

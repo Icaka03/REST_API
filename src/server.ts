@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // must be first so process.env is loaded
+dotenv.config();
 
 import app from "./app";
 

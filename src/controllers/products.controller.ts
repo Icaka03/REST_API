@@ -20,7 +20,7 @@ export const getProducts = async (
       prisma.product.count(),
     ]);
 
-    res.json({
+    res.status(200).json({
       success: true,
       data: products,
       pagination: {

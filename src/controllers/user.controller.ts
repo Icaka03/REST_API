@@ -5,18 +5,26 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/email.service";
 export const getUsers = async (req: Request, res: Response) => {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      createdAt: true,
-    },
-  });
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+      },
+    });
 
-  res.status(200).json({
-    success: true,
-    data: users,
-  });
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.error("createUser error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
 
 export const createUser = async (req: Request, res: Response) => {
@@ -80,85 +88,106 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-  const { password, email } = req.body;
+  try {
+    const { password, email } = req.body;
 
-  const correctUser = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!correctUser) {
-    res.status(400).json({
-      success: false,
-      message: "no user found",
+    const correctUser = await prisma.user.findUnique({
+      where: { email },
     });
-    return;
-  }
 
-  if (!correctUser.isVerified) {
-    res.status(403).json({
+    if (!correctUser) {
+      res.status(400).json({
+        success: false,
+        message: "no user found",
+      });
+      return;
+    }
+
+    if (!correctUser.isVerified) {
+      res.status(403).json({
+        success: false,
+        message: "user not verified",
+      });
+      return;
+    }
+    if (!correctUser.password) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This account uses social login. Please sign in with Google or GitHub.",
+      });
+    }
+
+    const samePassword = await bcrypt.compare(password, correctUser.password);
+
+    const token = jwt.sign(
+      // payload — what you store inside the token
+      { id: correctUser.id, email: correctUser.email },
+      // secret — used to sign and verify
+      process.env.JWT_SECRET as string,
+      // options
+      { expiresIn: "15m" },
+    );
+
+    if (samePassword) {
+      res.status(201).json({
+        success: true,
+        token,
+        data: {
+          email: correctUser.email,
+          id: correctUser.id,
+          createdAt: correctUser.createdAt,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("createUser error:", error);
+    res.status(500).json({
       success: false,
-      message: "user not verified",
-    });
-    return;
-  }
-  if (!correctUser.password) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "This account uses social login. Please sign in with Google or GitHub.",
-    });
-  }
-
-  const samePassword = await bcrypt.compare(password, correctUser.password);
-
-  const token = jwt.sign(
-    // payload — what you store inside the token
-    { id: correctUser.id, email: correctUser.email },
-    // secret — used to sign and verify
-    process.env.JWT_SECRET as string,
-    // options
-    { expiresIn: "15m" },
-  );
-
-  if (samePassword) {
-    res.status(201).json({
-      success: true,
-      token,
-      data: {
-        email: correctUser.email,
-        id: correctUser.id,
-        createdAt: correctUser.createdAt,
-      },
+      message: "Internal server error",
     });
   }
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
-  const { token } = req.query;
+  try {
+    const { token } = req.query;
 
-  const user = await prisma.user.findUnique({
-    where: { verificationCode: token as string },
-  });
+    const user = await prisma.user.findUnique({
+      where: { verificationCode: token as string },
+    });
 
-  // token not found
-  if (!user) {
-    return res.status(400).json({ message: "Invalid verification token" });
+    // token not found
+    if (!user) {
+      return res.status(400).json({ message: "Invalid verification token" });
+    }
+
+    // token expired
+    if (
+      !user.verificationExpiresAt ||
+      user.verificationExpiresAt < new Date()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Verification token has expired" });
+    }
+
+    // mark as verified and clear the token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationCode: null,
+        verificationExpiresAt: null,
+      },
+    });
+
+    res.json({ message: "Email verified successfully" });
+  } catch (error) {
+    console.error("createUser error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
-
-  // token expired
-  if (!user.verificationExpiresAt || user.verificationExpiresAt < new Date()) {
-    return res.status(400).json({ message: "Verification token has expired" });
-  }
-
-  // mark as verified and clear the token
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      isVerified: true,
-      verificationCode: null,
-      verificationExpiresAt: null,
-    },
-  });
-
-  res.json({ message: "Email verified successfully" });
 };

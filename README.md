@@ -2,6 +2,10 @@
 
 A RESTful API built with Node.js, Express, TypeScript, PostgreSQL, and Prisma. Features JWT auth, email verification, OAuth, rate limiting, pagination, global error handling, and full test coverage.
 
+**Live API:** `http://ec2-54-226-1-87.compute-1.amazonaws.com:3000`
+
+> The EC2 instance may be stopped when not in use to reduce costs.
+
 ## Tech Stack
 
 Node.js, Express, TypeScript, PostgreSQL, Prisma, JWT, bcryptjs, Resend, Passport (Google & GitHub OAuth), Docker, AWS EC2, Jest, Supertest
@@ -74,6 +78,8 @@ Server runs at `http://localhost:3000`
 
 ## API Endpoints
 
+Base URL (production): `http://ec2-54-226-1-87.compute-1.amazonaws.com:3000`
+
 ### Auth
 
 | Method | Endpoint                        | Description           | Auth |
@@ -130,7 +136,15 @@ Covers: user registration, login, error handling, and full product CRUD.
 
 ## Deployment
 
-Deployed on AWS EC2 with Docker. The EC2 instance may be stopped when not in use to reduce costs.
+Deployed on AWS EC2 (t3.micro) with Docker Compose. Both the Node.js app and PostgreSQL run as containers on the same instance.
+
+To redeploy after changes:
+
+```bash
+git pull origin main
+docker-compose down
+docker-compose up -d --build
+```
 
 ---
 

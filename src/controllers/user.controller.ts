@@ -70,7 +70,7 @@ export const createUser = async (
     });
 
     try {
-      await sendVerificationEmail(email, verificationCode);
+      // await sendVerificationEmail(email, verificationCode);
     } catch (error) {
       console.error("Failed to send verification email:", error);
     }
@@ -125,16 +125,28 @@ export const loginUser = async (
 
     const samePassword = await bcrypt.compare(password, correctUser.password);
 
-    const token = jwt.sign(
-      // payload — what you store inside the token
-      { id: correctUser.id, email: correctUser.email },
-      // secret — used to sign and verify
-      process.env.JWT_SECRET as string,
-      // options
-      { expiresIn: "15m" },
-    );
-
     if (samePassword) {
+      const token = jwt.sign(
+        // payload — what you store inside the token
+        { id: correctUser.id, email: correctUser.email },
+        // secret — used to sign and verify
+        process.env.JWT_SECRET as string,
+        // options
+        { expiresIn: "15m" },
+      );
+
+      const refreshToken = jwt.sign(
+        { id: correctUser.id },
+        process.env.REFRESH_SECRET as string,
+        { expiresIn: "7d" },
+      );
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true, // JS can't read it
+        secure: false, // set true in production (requires HTTPS)
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+      });
+
       res.status(201).json({
         success: true,
         token,

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { errorHandler } from "./middleware/error.middleware";
+import cookieParser from "cookie-parser";
 // import routes
 import userRoutes from "./routes/user.routes";
 import productsRoutes from "./routes/products.routes";
@@ -15,6 +16,7 @@ app.use(express.json()); // parses incoming JSON body
 app.use(cors()); // allows cross-origin requests
 app.use(helmet()); // sets secure headers
 app.use(passport.initialize());
+app.use(cookieParser());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productsRoutes);

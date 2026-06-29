@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 let token: string;
 
 beforeAll(async () => {
+  await prisma.user.deleteMany();
   await prisma.user.create({
     data: {
       email: "test@test.com",

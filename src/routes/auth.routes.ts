@@ -7,7 +7,7 @@ import {
 import { refreshToken } from "../controllers/auth.controller";
 import { authLimiter } from "../middleware/rateLimiter.middleware";
 const router = Router();
-
+console.log("auth router loaded");
 router.post("/register", authLimiter, createUser);
 router.post("/login", authLimiter, loginUser);
 router.get("/verify-email", authLimiter, verifyEmail);

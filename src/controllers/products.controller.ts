@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
-
+import { productScheme, productIdScheme } from "../schemas/products.schema";
+import { error } from "node:console";
 export const getProducts = async (
   req: Request,
   res: Response,
@@ -43,16 +44,16 @@ export const createProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, price } = req.body;
+    const results = productScheme.safeParse(req.body);
 
-    if (!name || !price) {
+    if (!results.success) {
       res.status(400).json({
         success: false,
-        message: "Name and price are required",
+        error: results.error.errors,
       });
       return;
     }
-
+    const { name, price } = results.data;
     const product = await prisma.product.create({
       data: { name, price },
     });
@@ -72,16 +73,27 @@ export const updateProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
-    const { name, price } = req.body;
+    const results = productScheme.safeParse(req.body);
+    const idParams = productIdScheme.safeParse(req.params);
 
-    if (!name && !price) {
+    if (!results.success) {
       res.status(400).json({
         success: false,
-        message: "Provide at least a name or price to update",
+        error: results.error.errors,
       });
       return;
     }
+
+    if (!idParams.success) {
+      res.status(400).json({
+        success: false,
+        error: idParams.error.errors,
+      });
+      return;
+    }
+
+    const { id } = idParams.data;
+    const { name, price } = results.data;
 
     const currentProduct = await prisma.product.findUnique({
       where: { id: Number(id) },
@@ -117,7 +129,17 @@ export const deleteProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const idParams = productIdScheme.safeParse(req.params);
+
+    if (!idParams.success) {
+      res.status(400).json({
+        success: false,
+        error: idParams.error.errors,
+      });
+      return;
+    }
+
+    const { id } = idParams.data;
 
     const currentProduct = await prisma.product.findUnique({
       where: { id: Number(id) },
@@ -150,15 +172,17 @@ export const getProductById = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const idParams = productIdScheme.safeParse(req.params);
 
-    if (!id) {
+    if (!idParams.success) {
       res.status(400).json({
         success: false,
-        message: "missing id",
+        error: idParams.error.errors,
       });
       return;
     }
+
+    const { id } = idParams.data;
 
     const product = await prisma.product.findUnique({
       where: { id: Number(id) },

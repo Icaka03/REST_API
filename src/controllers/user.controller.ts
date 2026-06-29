@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/email.service";
+import { userScheme, loginScheme } from "../schemas/user.schema";
+
+console.log("controller file loaded");
 export const getUsers = async (
   req: Request,
   res: Response,
@@ -33,16 +36,15 @@ export const createUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, password, name } = req.body;
-
-    if (!email || !password || !name) {
+    const result = userScheme.safeParse(req.body);
+    if (!result.success) {
       res.status(400).json({
         success: false,
-        message: "Missing email or password",
+        errors: result.error.errors,
       });
       return;
     }
-
+    const { email, password, name } = result.data;
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -70,7 +72,7 @@ export const createUser = async (
     });
 
     try {
-      // await sendVerificationEmail(email, verificationCode);
+      await sendVerificationEmail(email, verificationCode);
     } catch (error) {
       console.error("Failed to send verification email:", error);
     }
@@ -94,6 +96,15 @@ export const loginUser = async (
   next: NextFunction,
 ) => {
   try {
+    const results = loginScheme.safeParse(req.body);
+
+    if (!results.success) {
+      res.status(400).json({
+        success: false,
+        error: results.error.errors,
+      });
+      return;
+    }
     const { password, email } = req.body;
 
     const correctUser = await prisma.user.findUnique({
